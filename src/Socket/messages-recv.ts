@@ -1243,6 +1243,9 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 							}
 
 							// Handle pre-key errors with upload and delay
+							const errorMessage = msg?.messageStubParameters?.[0] || ''
+							const isPreKeyError = errorMessage.includes('PreKey')
+
 							if (isPreKeyError) {
 								logger.info({ error: errorMessage }, 'PreKey error detected, uploading and retrying')
 
@@ -1258,10 +1261,15 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 
 							const encNode = getBinaryNodeChild(node, 'enc')
 							await sendRetryRequest(node, !encNode)
-							const safeDelay = Math.max(retryRequestDelayMs || 0, 3000);
-							await delay(safeDelay)
-							}
-						} catch (err) {
+                          
+                            const safeDelay = Math.max(retryRequestDelayMs || 0, 3000); 
+                            await delay(safeDelay)
+                            // ----------------------------------------
+
+						} catch (err) { 
+							const errorMessage = msg?.messageStubParameters?.[0] || ''
+							const isPreKeyError = errorMessage.includes('PreKey')
+							
 							logger.error({ err, isPreKeyError }, 'Failed to handle retry, attempting basic retry')
 							// Still attempt retry even if pre-key upload failed
 							try {
